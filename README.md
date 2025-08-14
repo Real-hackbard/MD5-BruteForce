@@ -139,3 +139,133 @@ Instead of the formulation from the original RFC 1321 shown, the following may b
 "github" : bf215181b5140522137b3d4f6b73544a
 "GITHUB" : 81219a34fa8b077e82580d87c911895e
 ```
+
+### Encode:
+```pascal
+procedure Encode(Source,Target:pointer; Count:lgWord);
+// Encode Count bytes at Source into (Count / 4) DWORDs at Target
+var S : PByte;
+    T : PDWORD;
+    I : lgWord;
+begin
+  S:=Source;
+  T:=Target;
+  for I:=1 to Count div 4 do
+    begin
+      T^:=S^;
+      inc(S);
+      T^:=T^ or (S^ shl 8);
+      inc(S);
+      T^:=T^ or (S^ shl 16);
+      inc(S);
+      T^:=T^ or (S^ shl 24);
+      inc(S);
+      inc(T);
+    end;
+end;
+```
+
+### Decode:
+```pascal
+procedure Decode(Source, Target: pointer; Count: lgWord);
+// Decode Count DWORDs at Source into (Count * 4) Bytes at Target
+var S : PDWORD;
+    T : PByte;
+    I : lgWord;
+begin
+  S:=Source;
+  T:=Target;
+  for I := 1 to Count do
+    begin
+      T^:=S^ and $ff;
+      inc(T);
+      T^:=(S^ shr 8) and $ff;
+      inc(T);
+      T^:=(S^ shr 16) and $ff;
+      inc(T);
+      T^:=(S^ shr 24) and $ff;
+      inc(T);
+      inc(S);
+    end;
+end;
+
+procedure Transform(Buffer: pointer; var State: MD5State);
+// Transform State according to first 64 bytes at Buffer
+var a, b, c, d : DWORD;
+    Block      : MD5Block;
+begin
+  Encode(Buffer, @Block, 64);
+  a := State[0];
+  b := State[1];
+  c := State[2];
+  d := State[3];
+  FF(a, b, c, d, Block[ 0],  7, $d76aa478);
+  FF(d, a, b, c, Block[ 1], 12, $e8c7b756);
+  FF(c, d, a, b, Block[ 2], 17, $242070db);
+  FF(b, c, d, a, Block[ 3], 22, $c1bdceee);
+  FF(a, b, c, d, Block[ 4],  7, $f57c0faf);
+  FF(d, a, b, c, Block[ 5], 12, $4787c62a);
+  FF(c, d, a, b, Block[ 6], 17, $a8304613);
+  FF(b, c, d, a, Block[ 7], 22, $fd469501);
+  FF(a, b, c, d, Block[ 8],  7, $698098d8);
+  FF(d, a, b, c, Block[ 9], 12, $8b44f7af);
+  FF(c, d, a, b, Block[10], 17, $ffff5bb1);
+  FF(b, c, d, a, Block[11], 22, $895cd7be);
+  FF(a, b, c, d, Block[12],  7, $6b901122);
+  FF(d, a, b, c, Block[13], 12, $fd987193);
+  FF(c, d, a, b, Block[14], 17, $a679438e);
+  FF(b, c, d, a, Block[15], 22, $49b40821);
+  GG(a, b, c, d, Block[ 1],  5, $f61e2562);
+  GG(d, a, b, c, Block[ 6],  9, $c040b340);
+  GG(c, d, a, b, Block[11], 14, $265e5a51);
+  GG(b, c, d, a, Block[ 0], 20, $e9b6c7aa);
+  GG(a, b, c, d, Block[ 5],  5, $d62f105d);
+  GG(d, a, b, c, Block[10],  9,  $2441453);
+  GG(c, d, a, b, Block[15], 14, $d8a1e681);
+  GG(b, c, d, a, Block[ 4], 20, $e7d3fbc8);
+  GG(a, b, c, d, Block[ 9],  5, $21e1cde6);
+  GG(d, a, b, c, Block[14],  9, $c33707d6);
+  GG(c, d, a, b, Block[ 3], 14, $f4d50d87);
+  GG(b, c, d, a, Block[ 8], 20, $455a14ed);
+  GG(a, b, c, d, Block[13],  5, $a9e3e905);
+  GG(d, a, b, c, Block[ 2],  9, $fcefa3f8);
+  GG(c, d, a, b, Block[ 7], 14, $676f02d9);
+  GG(b, c, d, a, Block[12], 20, $8d2a4c8a);
+  HH(a, b, c, d, Block[ 5],  4, $fffa3942);
+  HH(d, a, b, c, Block[ 8], 11, $8771f681);
+  HH(c, d, a, b, Block[11], 16, $6d9d6122);
+  HH(b, c, d, a, Block[14], 23, $fde5380c);
+  HH(a, b, c, d, Block[ 1],  4, $a4beea44);
+  HH(d, a, b, c, Block[ 4], 11, $4bdecfa9);
+  HH(c, d, a, b, Block[ 7], 16, $f6bb4b60);
+  HH(b, c, d, a, Block[10], 23, $bebfbc70);
+  HH(a, b, c, d, Block[13],  4, $289b7ec6);
+  HH(d, a, b, c, Block[ 0], 11, $eaa127fa);
+  HH(c, d, a, b, Block[ 3], 16, $d4ef3085);
+  HH(b, c, d, a, Block[ 6], 23,  $4881d05);
+  HH(a, b, c, d, Block[ 9],  4, $d9d4d039);
+  HH(d, a, b, c, Block[12], 11, $e6db99e5);
+  HH(c, d, a, b, Block[15], 16, $1fa27cf8);
+  HH(b, c, d, a, Block[ 2], 23, $c4ac5665);
+  II(a, b, c, d, Block[ 0],  6, $f4292244);
+  II(d, a, b, c, Block[ 7], 10, $432aff97);
+  II(c, d, a, b, Block[14], 15, $ab9423a7);
+  II(b, c, d, a, Block[ 5], 21, $fc93a039);
+  II(a, b, c, d, Block[12],  6, $655b59c3);
+  II(d, a, b, c, Block[ 3], 10, $8f0ccc92);
+  II(c, d, a, b, Block[10], 15, $ffeff47d);
+  II(b, c, d, a, Block[ 1], 21, $85845dd1);
+  II(a, b, c, d, Block[ 8],  6, $6fa87e4f);
+  II(d, a, b, c, Block[15], 10, $fe2ce6e0);
+  II(c, d, a, b, Block[ 6], 15, $a3014314);
+  II(b, c, d, a, Block[13], 21, $4e0811a1);
+  II(a, b, c, d, Block[ 4],  6, $f7537e82);
+  II(d, a, b, c, Block[11], 10, $bd3af235);
+  II(c, d, a, b, Block[ 2], 15, $2ad7d2bb);
+  II(b, c, d, a, Block[ 9], 21, $eb86d391);
+  inc(State[0], a);
+  inc(State[1], b);
+  inc(State[2], c);
+  inc(State[3], d);
+end;
+```
