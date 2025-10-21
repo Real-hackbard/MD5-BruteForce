@@ -12,10 +12,11 @@
 
 The MD5 message-digest algorithm is a widely used hash function producing a 128-bit hash value. MD5 was designed by Ronald Rivest in 1991 to replace an earlier hash function MD4,[3] and was specified in 1992 as RFC 1321.
 
+</br>
 
 ![MD5 Brute Force](https://github.com/user-attachments/assets/80b46a7f-abb5-485e-bef8-c2976cb72ac2)
 
-
+</br>
 
 MD5 can be used as a [checksum](https://en.wikipedia.org/wiki/Checksum) to verify [data integrity](https://en.wikipedia.org/wiki/Data_integrity) against unintentional corruption. Historically it was widely used as a [cryptographic hash function](https://en.wikipedia.org/wiki/Cryptographic_hash_function); however it has been found to suffer from extensive vulnerabilities. It remains suitable for other non-cryptographic purposes, for example for determining the partition for a particular key in a partitioned database, and may be preferred due to lower computational requirements than more recent [Secure Hash Algorithms](https://en.wikipedia.org/wiki/Secure_Hash_Algorithms).
 
@@ -128,6 +129,8 @@ end for
 
 var char digest[16] := a0 append b0 append c0 append d0 // (Output is in little-endian)
 ```
+
+</br>
 
 Instead of the formulation from the original RFC 1321 shown, the following may be used for improved efficiency (useful if assembly language is being used – otherwise, the compiler will generally optimize the above code. Since each computation is dependent on another in these formulations, this is often slower than the above method where the nand/and can be parallelised):
 
